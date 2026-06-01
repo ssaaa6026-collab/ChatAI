@@ -17,23 +17,20 @@
 
 本应用使用 MiMo API，兼容以下协议格式：
 
-### 聊天 API（Anthropic 格式）
+### 聊天 & 识图 API（共用一个 API Key）
 - **端点**: `https://token-plan-cn.xiaomimimo.com/anthropic/v1/messages`
 - **认证**: `x-api-key` Header
 - **模型**: `mimo-v2.5`
 - **协议**: Anthropic Messages API
+- **功能**: 文本对话、图片分析、屏幕共享识别
+- **说明**: 聊天和识图使用同一个 API Key，对应应用内「聊天 API Key」输入框
 
-### TTS API（OpenAI 格式）
+### TTS API（独立 API Key）
 - **端点**: `https://api.xiaomimimo.com/v1/chat/completions`
-- **认证**: `api-key` Header
+- **认证**: `api-key` Header（与聊天 API 不同）
 - **模型**: `mimo-v2.5-tts`（内置音色）、`mimo-v2.5-tts-voiceclone`（克隆）
 - **协议**: OpenAI Chat Completions API
-
-### Vision API（Anthropic 格式）
-- **端点**: `https://token-plan-cn.xiaomimimo.com/anthropic/v1/messages`
-- **认证**: `x-api-key` Header
-- **模型**: `mimo-v2.5`
-- **协议**: Anthropic Messages API（支持 base64 图片输入）
+- **说明**: 对应应用内「TTS API Key」输入框
 
 ## 模型需要的功能
 
