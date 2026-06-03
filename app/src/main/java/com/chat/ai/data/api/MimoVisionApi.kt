@@ -11,12 +11,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
-class MimoVisionApi(private val apiKey: String) {
-    private val baseUrl = "https://token-plan-cn.xiaomimimo.com/anthropic"
-    private val client = OkHttpClient.Builder()
+class MimoVisionApi(
+    private val apiKey: String,
+    private val client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .build()
+) {
+    private val baseUrl = "https://token-plan-cn.xiaomimimo.com/anthropic"
     private val gson = Gson()
 
     data class ImageSource(val type: String, val media_type: String, val data: String)
@@ -59,7 +61,6 @@ class MimoVisionApi(private val apiKey: String) {
                 system = systemPrompt
             )
             val requestBody = gson.toJson(body)
-            android.util.Log.d("MimoVisionApi", "Request: ${requestBody.take(500)}")
 
             val request = Request.Builder()
                 .url("$baseUrl/v1/messages")
@@ -71,7 +72,6 @@ class MimoVisionApi(private val apiKey: String) {
 
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string() ?: ""
-            android.util.Log.d("MimoVisionApi", "Response: ${responseBody.take(500)}")
 
             if (response.isSuccessful) {
                 val apiResponse = gson.fromJson(responseBody, ApiResponse::class.java)

@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
@@ -14,7 +13,6 @@ import com.chat.ai.service.ReminderWorker
 import java.util.Calendar
 
 object ReminderScheduler {
-    private const val TAG = "ReminderScheduler"
 
     // 提醒时间配置
     private data class ReminderTime(val hour: Int, val minute: Int, val type: String)
@@ -27,12 +25,10 @@ object ReminderScheduler {
     )
 
     fun scheduleAllReminders(context: Context) {
-        Log.d(TAG, "Scheduling all reminders")
         reminderTimes.forEach { scheduleReminder(context, it) }
     }
 
     private fun scheduleReminder(context: Context, reminder: ReminderTime) {
-        Log.d(TAG, "Scheduling ${reminder.type} at ${reminder.hour}:${reminder.minute}")
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderReceiver::class.java).apply {
@@ -65,11 +61,9 @@ object ReminderScheduler {
             pendingIntent
         )
 
-        Log.d(TAG, "Scheduled ${reminder.type} at ${calendar.time}")
     }
 
     fun cancelAllReminders(context: Context) {
-        Log.d(TAG, "Cancelling all reminders")
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         reminderTimes.forEach { reminder ->

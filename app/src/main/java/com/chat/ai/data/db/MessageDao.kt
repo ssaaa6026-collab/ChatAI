@@ -24,6 +24,18 @@ interface MessageDao {
     @Query("SELECT * FROM messages ORDER BY timestamp DESC LIMIT :limit")
     suspend fun getRecentMessages(limit: Int): List<Message>
 
+    @Query("SELECT * FROM messages WHERE isHidden = 0 ORDER BY timestamp DESC LIMIT :limit")
+    suspend fun getRecentVisibleMessages(limit: Int): List<Message>
+
     @Query("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLastMessage(): Message?
+
+    @Query("SELECT COUNT(*) FROM messages")
+    suspend fun getMessageCount(): Int
+
+    @Query("DELETE FROM messages WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM messages WHERE timestamp < :beforeTimestamp ORDER BY timestamp DESC LIMIT :limit")
+    suspend fun getMessagesBefore(beforeTimestamp: Long, limit: Int): List<Message>
 }

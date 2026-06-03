@@ -26,21 +26,15 @@ class AsrManager(private val context: Context) {
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
         speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {
-                Log.d(TAG, "Ready for speech")
-            }
+            override fun onReadyForSpeech(params: Bundle?) {}
 
-            override fun onBeginningOfSpeech() {
-                Log.d(TAG, "Beginning of speech")
-            }
+            override fun onBeginningOfSpeech() {}
 
             override fun onRmsChanged(rmsdB: Float) {}
 
             override fun onBufferReceived(buffer: ByteArray?) {}
 
-            override fun onEndOfSpeech() {
-                Log.d(TAG, "End of speech")
-            }
+            override fun onEndOfSpeech() {}
 
             override fun onError(error: Int) {
                 val message = when (error) {
@@ -62,7 +56,6 @@ class AsrManager(private val context: Context) {
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val text = matches?.firstOrNull() ?: ""
-                Log.d(TAG, "ASR result: $text")
                 onResult(text)
             }
 

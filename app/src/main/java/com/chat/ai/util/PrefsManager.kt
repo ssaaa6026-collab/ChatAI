@@ -1,6 +1,7 @@
 package com.chat.ai.util
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -10,13 +11,20 @@ object PrefsManager {
     private const val KEY_TTS_API_KEY = "tts_api_key"
     private const val DEFAULT_API_KEY = ""
 
-    private fun getPrefs(context: Context) = EncryptedSharedPreferences.create(
-        context,
-        PREFS_NAME,
-        MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    @Volatile private var cachedPrefs: SharedPreferences? = null
+
+    private fun getPrefs(context: Context): SharedPreferences {
+        cachedPrefs?.let { return it }
+        return synchronized(this) {
+            cachedPrefs ?: EncryptedSharedPreferences.create(
+                context.applicationContext,
+                PREFS_NAME,
+                MasterKey.Builder(context.applicationContext).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            ).also { cachedPrefs = it }
+        }
+    }
 
     fun getApiKey(context: Context): String {
         return getPrefs(context).getString(KEY_API_KEY, DEFAULT_API_KEY) ?: DEFAULT_API_KEY
@@ -90,5 +98,33 @@ object PrefsManager {
 
     fun setReminderEnabled(context: Context, enabled: Boolean) {
         getPrefs(context).edit().putBoolean(KEY_REMINDER_ENABLED, enabled).apply()
+    }
+
+    private const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
+    private const val KEY_ALARM_PERMISSION_ASKED = "alarm_permission_asked"
+    private const val KEY_BATTERY_OPTIMIZATION_ASKED = "battery_optimization_asked"
+
+    fun isNotificationPermissionAsked(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_NOTIFICATION_PERMISSION_ASKED, false)
+    }
+
+    fun setNotificationPermissionAsked(context: Context, asked: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_NOTIFICATION_PERMISSION_ASKED, asked).apply()
+    }
+
+    fun isAlarmPermissionAsked(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_ALARM_PERMISSION_ASKED, false)
+    }
+
+    fun setAlarmPermissionAsked(context: Context, asked: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_ALARM_PERMISSION_ASKED, asked).apply()
+    }
+
+    fun isBatteryOptimizationAsked(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_BATTERY_OPTIMIZATION_ASKED, false)
+    }
+
+    fun setBatteryOptimizationAsked(context: Context, asked: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_BATTERY_OPTIMIZATION_ASKED, asked).apply()
     }
 }

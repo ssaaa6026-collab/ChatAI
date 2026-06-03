@@ -12,10 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.chat.ai.data.api.MimoTtsApi
 import com.chat.ai.data.db.VoiceConfigDao
 import com.chat.ai.data.model.VoiceConfig
-import com.chat.ai.speech.TtsManager
 import com.chat.ai.util.PrefsManager
 import kotlinx.coroutines.launch
 import android.util.Log
@@ -28,9 +26,8 @@ fun VoiceSettingsScreen(
     voiceConfigDao: VoiceConfigDao
 ) {
     val context = LocalContext.current
-    val ttsApiKey = remember { PrefsManager.getTtsApiKey(context) }
-    val ttsApi = remember { MimoTtsApi(ttsApiKey) }
-    val ttsManager = remember { TtsManager(context) }
+    val ttsApi = remember { com.chat.ai.util.ServiceLocator.ttsApi() }
+    val ttsManager = remember { com.chat.ai.util.ServiceLocator.ttsManager }
     val coroutineScope = rememberCoroutineScope()
 
     var selectedType by remember { mutableStateOf("builtin") }
@@ -80,7 +77,6 @@ fun VoiceSettingsScreen(
                         resolvedType.contains("wav") -> "audio/wav"
                         else -> "audio/wav"
                     }
-                    Log.d("VoiceSettings", "Saved to: $cloneAudioPath, mimeType: $cloneMimeType")
                 }
             }
         }
@@ -173,8 +169,8 @@ fun VoiceSettingsScreen(
                 onClick = {
                     isTesting = true; errorMessage = null
                     coroutineScope.launch {
-                        val result = ttsManager.speak("你好呀，今天过得怎么样？", VoiceConfig(type = selectedType, voiceId = selectedVoice, designPrompt = designPrompt, cloneAudioPath = cloneAudioPath, styleTags = styleTags, cloneMimeType = cloneMimeType))
-                        result.onFailure { e -> errorMessage = "语音合成失败: ${e.message}" }
+                        val played = ttsManager.speak("你好呀，今天过得怎么样？", VoiceConfig(type = selectedType, voiceId = selectedVoice, designPrompt = designPrompt, cloneAudioPath = cloneAudioPath, styleTags = styleTags, cloneMimeType = cloneMimeType))
+                        if (!played) errorMessage = "语音合成失败"
                         isTesting = false
                     }
                 },

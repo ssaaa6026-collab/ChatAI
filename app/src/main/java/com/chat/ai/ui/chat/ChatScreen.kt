@@ -1,13 +1,21 @@
 package com.chat.ai.ui.chat
 
-import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -15,6 +23,8 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +39,7 @@ import com.chat.ai.speech.TtsManager
 import com.chat.ai.util.PrefsManager
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun ChatScreen(
     onNavigateToSettings: () -> Unit,
@@ -46,9 +56,18 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val isScreenSharing = viewModel.screenCapture != null
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val streamingText by viewModel.streamingText.collectAsState()
+    val isStreaming by viewModel.isStreaming.collectAsState()
+    val displayLimit by viewModel.displayLimit.collectAsState()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { viewModel.loadMoreMessages() }
+    )
     var showError by remember { mutableStateOf<String?>(null) }
     var selectedImageBytes by remember { mutableStateOf<ByteArray?>(null) }
     var selectedImageName by remember { mutableStateOf<String?>(null) }
+    var showImageSourceDialog by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -58,6 +77,30 @@ fun ChatScreen(
                 selectedImageBytes = stream.readBytes()
                 selectedImageName = it.lastPathSegment ?: "已选择图片"
             }
+        }
+    }
+
+    var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraUri != null) {
+            context.contentResolver.openInputStream(cameraUri!!)?.use { stream ->
+                selectedImageBytes = stream.readBytes()
+                selectedImageName = "拍照"
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val file = java.io.File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+            cameraUri = androidx.core.content.FileProvider.getUriForFile(
+                context, "${context.packageName}.fileprovider", file
+            )
+            cameraLauncher.launch(cameraUri!!)
         }
     }
 
@@ -72,16 +115,10 @@ fun ChatScreen(
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             if (isInitialLoad) {
-                // 首次加载，直接滚到底部
                 listState.scrollToItem(messages.size - 1)
                 isInitialLoad = false
             } else {
-                val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                val totalItems = messages.size
-                // 只有用户在底部附近时才自动滚动
-                if (lastVisibleIndex >= totalItems - 5) {
-                    listState.scrollToItem(totalItems - 1)
-                }
+                listState.animateScrollToItem(messages.size - 1)
             }
         }
     }
@@ -95,19 +132,80 @@ fun ChatScreen(
         }
     }
 
+    val userAvatarPath = remember { PrefsManager.getUserAvatar(context) }
+    val aiAvatarPath = remember { PrefsManager.getAiAvatar(context) }
+    val userAvatarBitmap = remember(userAvatarPath) {
+        if (userAvatarPath.isNotBlank() && java.io.File(userAvatarPath).exists()) {
+            android.graphics.BitmapFactory.decodeFile(userAvatarPath)?.asImageBitmap()
+        } else null
+    }
+    val aiAvatarBitmap = remember(aiAvatarPath) {
+        if (aiAvatarPath.isNotBlank() && java.io.File(aiAvatarPath).exists()) {
+            android.graphics.BitmapFactory.decodeFile(aiAvatarPath)?.asImageBitmap()
+        } else null
+    }
+
     Scaffold(
         topBar = {
+            val subtitle = buildList {
+                if (isScreenSharing) add("屏幕共享中")
+            }.joinToString(" · ")
+
             TopAppBar(
-                title = { Text(personaName) },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (aiAvatarBitmap != null) {
+                            Image(
+                                bitmap = aiAvatarBitmap,
+                                contentDescription = "AI头像",
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    personaName.take(1),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(personaName)
+                            if (subtitle.isNotBlank()) {
+                                Text(
+                                    subtitle,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.toggleAutoSpeak() }) {
                         Icon(
                             if (autoSpeak) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                            contentDescription = if (autoSpeak) "关闭自动朗读" else "开启自动朗读"
+                            contentDescription = if (autoSpeak) "关闭自动朗读" else "开启自动朗读",
+                            tint = if (autoSpeak) MaterialTheme.colorScheme.primary
+                                   else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    TextButton(onClick = onNavigateToPersona) { Text("人设") }
-                    TextButton(onClick = onNavigateToSettings) { Text("设置") }
+                    IconButton(onClick = onNavigateToPersona) {
+                        Icon(Icons.Default.Person, contentDescription = "人设")
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "设置")
+                    }
                 }
             )
         },
@@ -118,7 +216,11 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (isScreenSharing) {
+            AnimatedVisibility(
+                visible = isScreenSharing,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
                 Surface(
                     color = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.fillMaxWidth()
@@ -132,32 +234,15 @@ fun ChatScreen(
                 }
             }
 
-            // 只显示最近100条消息
-            val displayMessages = remember(messages) {
-                if (messages.size > 100) messages.takeLast(100) else messages
+            val displayMessages = remember(messages, displayLimit) {
+                if (messages.size > displayLimit) messages.takeLast(displayLimit) else messages
             }
 
-            val onPlayVoice: (String) -> Unit = remember(viewModel) {
-                { text -> viewModel.speakText(text) }
-            }
-
-            // 在屏幕级别读取头像路径和解码，避免每条消息重复读取
             val ttsManager = remember { TtsManager(context) }
-            val userAvatarPath = remember { PrefsManager.getUserAvatar(context) }
-            val aiAvatarPath = remember { PrefsManager.getAiAvatar(context) }
-            val userAvatarBitmap = remember(userAvatarPath) {
-                if (userAvatarPath.isNotBlank() && java.io.File(userAvatarPath).exists()) {
-                    android.graphics.BitmapFactory.decodeFile(userAvatarPath)?.asImageBitmap()
-                } else null
-            }
-            val aiAvatarBitmap = remember(aiAvatarPath) {
-                if (aiAvatarPath.isNotBlank() && java.io.File(aiAvatarPath).exists()) {
-                    android.graphics.BitmapFactory.decodeFile(aiAvatarPath)?.asImageBitmap()
-                } else null
-            }
 
+            Box(modifier = Modifier.weight(1f).fillMaxWidth().pullRefresh(pullRefreshState)) {
             LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(vertical = 8.dp)
@@ -167,13 +252,43 @@ fun ChatScreen(
                     key = { it.id },
                     contentType = { if (it.isVoice) "voice" else "text" }
                 ) { message ->
-                    MessageBubble(
-                        message = message,
-                        onPlayVoice = onPlayVoice,
-                        userAvatarBitmap = userAvatarBitmap,
-                        aiAvatarBitmap = aiAvatarBitmap,
-                        ttsManager = ttsManager
-                    )
+                    Box(modifier = Modifier.animateItemPlacement()) {
+                        MessageBubble(
+                            message = message,
+                            userAvatarBitmap = userAvatarBitmap,
+                            aiAvatarBitmap = aiAvatarBitmap,
+                            ttsManager = ttsManager,
+                            onDelete = { viewModel.deleteMessage(message.id) },
+                            personaName = personaName
+                        )
+                    }
+                }
+                val lastMsg = displayMessages.lastOrNull()
+                val streamingDone = !isStreaming && lastMsg?.role == "assistant" && lastMsg.content == streamingText
+                if (streamingText.isNotBlank() && !streamingDone) {
+                    item {
+                        // 光标闪烁效果
+                        var cursorVisible by remember { mutableStateOf(true) }
+                        LaunchedEffect(Unit) {
+                            while (true) {
+                                kotlinx.coroutines.delay(500)
+                                cursorVisible = !cursorVisible
+                            }
+                        }
+                        val displayText = streamingText + if (cursorVisible) "▌" else ""
+
+                        Box(modifier = Modifier.animateItemPlacement()) {
+                        MessageBubble(
+                            message = com.chat.ai.data.model.Message(
+                                role = "assistant",
+                                content = displayText
+                            ),
+                            userAvatarBitmap = userAvatarBitmap,
+                            aiAvatarBitmap = aiAvatarBitmap,
+                            personaName = personaName
+                        )
+                        }
+                    }
                 }
                 if (isLoading) {
                     item {
@@ -195,9 +310,19 @@ fun ChatScreen(
                     }
                 }
             }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
 
             // 显示已选择的图片
-            if (selectedImageBytes != null) {
+            AnimatedVisibility(
+                visible = selectedImageBytes != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -237,10 +362,30 @@ fun ChatScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { imagePickerLauncher.launch("image/*") },
+                    onClick = { showImageSourceDialog = true },
                     enabled = !isLoading
                 ) {
                     Icon(Icons.Default.Image, contentDescription = "选择图片")
+                }
+
+                if (showImageSourceDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showImageSourceDialog = false },
+                        title = { Text("选择图片来源") },
+                        text = { Text("从哪里获取图片？") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showImageSourceDialog = false
+                                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                            }) { Text("拍照") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                showImageSourceDialog = false
+                                imagePickerLauncher.launch("image/*")
+                            }) { Text("从相册选择") }
+                        }
+                    )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 OutlinedTextField(

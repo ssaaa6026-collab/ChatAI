@@ -4,13 +4,11 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import com.chat.ai.data.model.CustomReminder
 import com.chat.ai.service.CustomReminderReceiver
 import java.util.Calendar
 
 object CustomReminderScheduler {
-    private const val TAG = "CustomReminderScheduler"
 
     fun schedule(context: Context, reminder: CustomReminder) {
         if (!reminder.isEnabled) return
@@ -45,7 +43,6 @@ object CustomReminderScheduler {
             pendingIntent
         )
 
-        Log.d(TAG, "Scheduled custom reminder ${reminder.id} at ${reminder.hour}:${reminder.minute}, weekdays: ${reminder.weekDays}")
     }
 
     fun cancel(context: Context, reminderId: Long) {
@@ -57,7 +54,6 @@ object CustomReminderScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent)
-        Log.d(TAG, "Cancelled custom reminder $reminderId")
     }
 
     fun rescheduleAll(context: Context, reminders: List<CustomReminder>) {

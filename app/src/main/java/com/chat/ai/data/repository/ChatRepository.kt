@@ -1,11 +1,14 @@
 package com.chat.ai.data.repository
 
-import android.util.Log
 import com.chat.ai.data.api.MimoTextApi
+import com.chat.ai.data.api.MimoVisionApi
 import com.chat.ai.data.db.MessageDao
 import com.chat.ai.data.model.Message
 import com.chat.ai.util.ContextManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class ChatRepository(
     private val messageDao: MessageDao,
@@ -17,46 +20,69 @@ class ChatRepository(
     suspend fun sendMessage(
         content: String,
         systemPrompt: String,
-        responseLength: String = "normal",
         saveUserMessage: Boolean = true,
-        saveAssistantMessage: Boolean = true
+        saveAssistantMessage: Boolean = true,
+        displayContent: String = content,
+        isVoice: Boolean = false
     ): Result<String> {
-        // 获取当前日期时间
-        val currentTime = java.text.SimpleDateFormat("yyyy年MM月dd日 HH:mm", java.util.Locale.CHINA).format(java.util.Date())
+        val contextMessages = contextManager.getContextMessages().toMutableList()
+        contextMessages.add(MimoTextApi.Message("user", content))
 
-        // 获取上下文消息（在保存用户消息之前）
-        val contextMessages = contextManager.getContextMessages()
-
-        // 添加当前用户消息到上下文
-        val allMessages = contextMessages.toMutableList()
-        allMessages.add(MimoTextApi.Message("user", content))
-
-        // 保存用户消息到数据库
         if (saveUserMessage) {
-            messageDao.insert(Message(role = "user", content = content))
+            messageDao.insert(Message(role = "user", content = displayContent))
         }
 
-        val lengthInstruction = when (responseLength) {
-            "short" -> "简短回复，一两句话即可。"
-            "long" -> "详细回复，展开说明。"
-            else -> "正常回复。"
-        }
-        val finalSystemPrompt = buildString {
-            append(systemPrompt)
-            append("\n\n规则：$lengthInstruction 动作神态用括号描述，如（微笑）。现在是 $currentTime。")
-        }
-        Log.d("ChatRepository", "Response length: $responseLength, prompt: $finalSystemPrompt")
-
-        // 调用API
-        val result = textApi.sendMessage(finalSystemPrompt, allMessages)
-
+        val result = textApi.sendMessage(systemPrompt, contextMessages)
         result.onSuccess { response ->
-            // 保存AI回复
             if (saveAssistantMessage) {
-                messageDao.insert(Message(role = "assistant", content = response))
+                messageDao.insert(Message(role = "assistant", content = response, isVoice = isVoice))
             }
         }
+        return result
+    }
 
+    suspend fun deleteMessage(id: Long) {
+        messageDao.deleteById(id)
+    }
+
+    suspend fun loadMoreMessages(beforeTimestamp: Long, limit: Int = 30): List<Message> {
+        return messageDao.getMessagesBefore(beforeTimestamp, limit)
+    }
+
+    fun sendStreamingMessage(
+        content: String,
+        systemPrompt: String,
+        displayContent: String = content
+    ): Flow<String> = flow {
+        val contextMessages = contextManager.getContextMessages().toMutableList()
+        contextMessages.add(MimoTextApi.Message("user", content))
+
+        messageDao.insert(Message(role = "user", content = displayContent))
+
+        val fullResponse = StringBuilder()
+        textApi.sendMessageStreaming(systemPrompt, contextMessages).collect { token ->
+            fullResponse.append(token)
+            emit(token)
+        }
+
+        if (fullResponse.isNotEmpty()) {
+            messageDao.insert(Message(role = "assistant", content = fullResponse.toString()))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    suspend fun sendImageMessage(
+        content: String,
+        imageBytes: ByteArray,
+        systemPrompt: String,
+        visionApi: MimoVisionApi,
+        userMessagePrefix: String = "[图片] "
+    ): Result<String> {
+        messageDao.insert(Message(role = "user", content = "$userMessagePrefix$content"))
+
+        val result = visionApi.analyzeImage(imageBytes, content, systemPrompt)
+        result.onSuccess { response ->
+            messageDao.insert(Message(role = "assistant", content = response))
+        }
         return result
     }
 }

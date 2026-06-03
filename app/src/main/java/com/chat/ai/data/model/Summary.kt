@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Summary(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val content: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val messageCountAtSnapshot: Int = 0
 )

@@ -3,9 +3,8 @@ package com.chat.ai.ui.persona
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.chat.ai.ChatApplication
 import com.chat.ai.data.model.Persona
-import com.chat.ai.data.repository.PersonaRepository
+import com.chat.ai.util.ServiceLocator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,8 +22,7 @@ data class PersonaState(
 )
 
 class PersonaViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = (application as ChatApplication).database
-    private val personaRepository = PersonaRepository(db.personaDao(), db.voiceConfigDao())
+    private val personaRepository = ServiceLocator.personaRepository()
 
     private val _activePersona = MutableStateFlow<PersonaState?>(null)
     val activePersona: StateFlow<PersonaState?> = _activePersona.asStateFlow()

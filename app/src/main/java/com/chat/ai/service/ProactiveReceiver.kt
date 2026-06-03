@@ -13,14 +13,9 @@ class ProactiveReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent?) {
-        Log.d(TAG, "onReceive called at ${System.currentTimeMillis()}")
-        Log.d(TAG, "Intent: $intent")
-
         try {
-            // 执行任务
             val workRequest = OneTimeWorkRequestBuilder<ProactiveWorker>().build()
             WorkManager.getInstance(context).enqueue(workRequest)
-            Log.d(TAG, "WorkManager task enqueued successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to enqueue work", e)
         }

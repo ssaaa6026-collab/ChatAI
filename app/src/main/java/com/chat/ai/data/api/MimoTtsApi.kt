@@ -12,16 +12,18 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
-class MimoTtsApi(private val apiKey: String) {
+class MimoTtsApi(
+    private val apiKey: String,
+    private val client: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .build()
+) {
     companion object {
         private const val TAG = "MimoTtsApi"
     }
 
     private val baseUrl = "https://api.xiaomimimo.com/v1"
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .build()
     private val gson = GsonBuilder()
         .disableHtmlEscaping()
         .serializeNulls()
@@ -142,7 +144,6 @@ class MimoTtsApi(private val apiKey: String) {
             }
         }
         val requestBody = jsonBody.toString()
-        Log.d(TAG, "Request: $requestBody")
 
         val request = Request.Builder()
             .url("$baseUrl/chat/completions")
@@ -153,8 +154,6 @@ class MimoTtsApi(private val apiKey: String) {
 
         val response = client.newCall(request).execute()
         val responseBody = response.body?.string() ?: ""
-        Log.d(TAG, "Response code: ${response.code}")
-        Log.d(TAG, "Response body (first 500 chars): ${responseBody.take(500)}")
 
         if (response.isSuccessful) {
             return try {
@@ -166,13 +165,10 @@ class MimoTtsApi(private val apiKey: String) {
                 val audioData = audio?.get("data") as? String
 
                 if (!audioData.isNullOrEmpty()) {
-                    Log.d(TAG, "Found audio data, length: ${audioData.length}")
                     val audioBytes = Base64.decode(audioData, Base64.DEFAULT)
-                    Log.d(TAG, "Decoded audio bytes: ${audioBytes.size}")
                     Result.success(audioBytes)
                 } else {
                     Log.e(TAG, "No audio data found in response")
-                    Log.d(TAG, "Response keys: ${jsonResponse.keys}")
                     Result.failure(Exception("No audio data in response"))
                 }
             } catch (e: Exception) {

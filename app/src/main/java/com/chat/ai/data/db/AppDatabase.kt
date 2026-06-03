@@ -7,8 +7,8 @@ import androidx.room.RoomDatabase
 import com.chat.ai.data.model.*
 
 @Database(
-    entities = [Message::class, Persona::class, Summary::class, VoiceConfig::class, CustomReminder::class],
-    version = 8,
+    entities = [Message::class, Persona::class, Summary::class, VoiceConfig::class, CustomReminder::class, Memory::class],
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -17,6 +17,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun summaryDao(): SummaryDao
     abstract fun voiceConfigDao(): VoiceConfigDao
     abstract fun customReminderDao(): CustomReminderDao
+    abstract fun memoryDao(): MemoryDao
 
     companion object {
         @Volatile
