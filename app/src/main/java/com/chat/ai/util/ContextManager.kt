@@ -85,13 +85,11 @@ class ContextManager(
         // 每20条消息触发一次反思
         val memoryCount = memoryDao.getCount()
         if (memoryCount >= 5 && currentCount >= 20 && currentCount % 20 < 7) {
-            android.util.Log.d("MemorySystem", "Consolidating memories, count=$memoryCount, msgs=$currentCount")
             consolidateMemories()
         }
     }
 
     private suspend fun extractMemories(conversation: String) {
-        android.util.Log.d("MemorySystem", "extractMemories called, conversation length: ${conversation.length}")
         val existingMemories = memoryDao.getAll()
         val existingText = if (existingMemories.isNotEmpty()) {
             existingMemories.joinToString("\n") { "- ${it.content}" }
@@ -119,7 +117,6 @@ $conversation"""
 
         val result = textApi.sendMessage("", listOf(MimoTextApi.Message("user", prompt)))
         result.onSuccess { response ->
-            android.util.Log.d("MemorySystem", "extractMemories response: ${response.take(200)}")
             parseMemoryLines(response, defaultType = "semantic", defaultImportance = 5)
         }
         result.onFailure { e ->
