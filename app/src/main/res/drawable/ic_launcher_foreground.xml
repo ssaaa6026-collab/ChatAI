@@ -5,30 +5,56 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 背景圆 -->
+    <!-- 左耳 -->
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
+        android:fillColor="#000000"
+        android:pathData="M30,52 L38,28 L46,48 Z" />
 
-    <!-- 聊天气泡 -->
+    <!-- 右耳 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M62,48 L70,28 L78,52 Z" />
+
+    <!-- 脸 -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M34,38 C34,33 38,29 43,29 L65,29 C70,29 74,33 74,38 L74,56 C74,61 70,65 65,65 L50,65 L42,72 L42,65 L43,65 C38,65 34,61 34,56 Z" />
+        android:strokeColor="#000000"
+        android:strokeWidth="3"
+        android:pathData="M54,74 C38,74 28,64 28,54 C28,44 38,38 54,38 C70,38 80,44 80,54 C80,64 70,74 54,74 Z" />
 
-    <!-- 闪光/星星 1 -->
+    <!-- 左眼 -->
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M54,40 L55.5,44 L60,44 L56.5,47 L58,52 L54,49 L50,52 L51.5,47 L48,44 L52.5,44 Z" />
+        android:fillColor="#000000"
+        android:pathData="M42,54 C42,51 45,49 48,49 C51,49 54,51 54,54 C54,57 51,59 48,59 C45,59 42,57 42,54 Z" />
 
-    <!-- 闪光/星星 2（小） -->
+    <!-- 右眼 -->
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M66,38 L67,40 L69,40 L67.5,41.5 L68,43 L66,42 L64,43 L64.5,41.5 L63,40 L65,40 Z"
-        android:strokeAlpha="0.6" />
+        android:fillColor="#000000"
+        android:pathData="M54,54 C54,51 57,49 60,49 C63,49 66,51 66,54 C66,57 63,59 60,59 C57,59 54,57 54,54 Z" />
 
-    <!-- 闪光/星星 3（小） -->
+    <!-- 鼻子 -->
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M40,50 L41,52 L43,52 L41.5,53.5 L42,55 L40,54 L38,55 L38.5,53.5 L37,52 L39,52 Z"
-        android:strokeAlpha="0.4" />
+        android:fillColor="#000000"
+        android:pathData="M52,60 L54,63 L56,60 Z" />
+
+    <!-- 嘴巴 -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M54,63 L54,66 M54,66 Q50,70 46,66 M54,66 Q58,70 62,66" />
+
+    <!-- 左胡须 -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M46,62 L26,58 M46,64 L28,64 M46,66 L26,70" />
+
+    <!-- 右胡须 -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M62,62 L82,58 M62,64 L80,64 M62,66 L82,70" />
 </vector>
