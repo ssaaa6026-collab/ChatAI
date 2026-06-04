@@ -8,24 +8,24 @@
     <!-- 爱心主体（深色底层，营造立体感） -->
     <path
         android:fillColor="#8B0000"
-        android:pathData="M54,74 C54,74 24,56 24,40 C24,30 32,24 40,24 C46,24 50,28 54,34 C58,28 62,24 68,24 C76,24 84,30 84,40 C84,56 54,74 54,74 Z" />
+        android:pathData="M46,64 C46,64 24,50 24,38 C24,31 29,27 35,27 C39,27 43,30 46,34 C49,30 53,27 57,27 C63,27 68,31 68,38 C68,50 46,64 46,64 Z" />
 
     <!-- 爱心主体（渐变亮色层） -->
     <path
         android:fillColor="#FF4B6E"
-        android:pathData="M54,72 C54,72 26,55 26,40 C26,31 33,26 40,26 C46,26 50,29 54,35 C58,29 62,26 68,26 C75,26 82,31 82,40 C82,55 54,72 54,72 Z" />
+        android:pathData="M46,62 C46,62 26,49 26,38 C26,32 30,28 35,28 C39,28 43,31 46,35 C49,31 53,28 57,28 C62,28 66,32 66,38 C66,49 46,62 46,62 Z" />
 
     <!-- 爱心高光（左上） -->
     <path
         android:fillColor="#FF8FA0"
-        android:pathData="M38,32 C38,32 34,36 34,40 C34,44 36,46 38,44 C40,42 42,38 42,34 C42,30 40,30 38,32 Z"
+        android:pathData="M33,33 C33,33 30,36 30,39 C30,42 32,44 34,42 C36,40 38,37 38,34 C38,31 35,31 33,33 Z"
         android:strokeAlpha="0.6" />
 
     <!-- 心动线 -->
     <path
         android:strokeColor="#FF4B6E"
-        android:strokeWidth="3"
+        android:strokeWidth="2.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M78,48 L84,48 L86,40 L88,54 L90,44 L92,50 L94,48 L100,48" />
+        android:pathData="M62,46 L70,46 L73,36 L76,54 L79,40 L82,50 L85,46 L95,46 L98,46" />
 </vector>
