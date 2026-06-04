@@ -13,5 +13,8 @@
 -dontwarn okio.**
 -keep class okhttp3.** { *; }
 
+# Security Crypto (suppress errorprone annotation warnings)
+-dontwarn com.google.errorprone.annotations.**
+
 # Keep line numbers for crash reports
 -keepattributes SourceFile,LineNumberTable
