@@ -5,60 +5,27 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 左耳（三角形） -->
+    <!-- 爱心主体（深色底层，营造立体感） -->
     <path
-        android:fillColor="#2D2D2D"
-        android:pathData="M32,50 L40,26 L50,46 Z" />
+        android:fillColor="#8B0000"
+        android:pathData="M54,74 C54,74 24,56 24,40 C24,30 32,24 40,24 C46,24 50,28 54,34 C58,28 62,24 68,24 C76,24 84,30 84,40 C84,56 54,74 54,74 Z" />
 
-    <!-- 右耳（三角形） -->
+    <!-- 爱心主体（渐变亮色层） -->
     <path
-        android:fillColor="#2D2D2D"
-        android:pathData="M58,46 L68,26 L76,50 Z" />
+        android:fillColor="#FF4B6E"
+        android:pathData="M54,72 C54,72 26,55 26,40 C26,31 33,26 40,26 C46,26 50,29 54,35 C58,29 62,26 68,26 C75,26 82,31 82,40 C82,55 54,72 54,72 Z" />
 
-    <!-- 脸（圆形） -->
+    <!-- 爱心高光（左上） -->
     <path
-        android:fillColor="#2D2D2D"
-        android:pathData="M54,72 C38,72 26,62 26,52 C26,42 38,34 54,34 C70,34 82,42 82,52 C82,62 70,72 54,72 Z" />
+        android:fillColor="#FF8FA0"
+        android:pathData="M38,32 C38,32 34,36 34,40 C34,44 36,46 38,44 C40,42 42,38 42,34 C42,30 40,30 38,32 Z"
+        android:strokeAlpha="0.6" />
 
-    <!-- 左眼白 -->
+    <!-- 心动线 -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M40,50 C40,46 44,42 48,42 C52,42 56,46 56,50 C56,54 52,58 48,58 C44,58 40,54 40,50 Z" />
-
-    <!-- 右眼白 -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M52,50 C52,46 56,42 60,42 C64,42 68,46 68,50 C68,54 64,58 60,58 C56,58 52,54 52,50 Z" />
-
-    <!-- 左瞳孔 -->
-    <path
-        android:fillColor="#2D2D2D"
-        android:pathData="M44,50 C44,47 46,45 48,45 C50,45 52,47 52,50 C52,53 50,55 48,55 C46,55 44,53 44,50 Z" />
-
-    <!-- 右瞳孔 -->
-    <path
-        android:fillColor="#2D2D2D"
-        android:pathData="M56,50 C56,47 58,45 60,45 C62,45 64,47 64,50 C64,53 62,55 60,55 C58,55 56,53 56,50 Z" />
-
-    <!-- 左眼高光 -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,48 C46,47 47,46 48,46 C49,46 50,47 50,48 C50,49 49,50 48,50 C47,50 46,49 46,48 Z" />
-
-    <!-- 右眼高光 -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M58,48 C58,47 59,46 60,46 C61,46 62,47 62,48 C62,49 61,50 60,50 C59,50 58,49 58,48 Z" />
-
-    <!-- 鼻子（小三角） -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M52,58 L54,61 L56,58 Z" />
-
-    <!-- 嘴巴 -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.5"
+        android:strokeColor="#FF4B6E"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
-        android:pathData="M54,61 Q50,65 48,62 M54,61 Q58,65 60,62" />
+        android:strokeLineJoin="round"
+        android:pathData="M78,48 L84,48 L86,40 L88,54 L90,44 L92,50 L94,48 L100,48" />
 </vector>
